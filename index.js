@@ -28,7 +28,7 @@ async function run() {
     app.post("/products", async (req, res) => {
       const product = req.body;
       const result = await productCollection.insertOne(product);
-      res.send(result);
+      res.send(product);
     });
     // get data from server
     app.get("/products", async (req, res) => {
@@ -49,6 +49,31 @@ async function run() {
       const id = req.params.id;
       const query = { _id: ObjectId(id) };
       const result = await productCollection.deleteOne(query);
+      res.send(result);
+    });
+    // update data
+    app.put("/products/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) };
+      const product = req.body;
+      const option = { upsert: true };
+      const updateProduct = {
+        $set: {
+          category: product.category,
+          description: product.description,
+          discount: product.discount,
+          imgURL: product.imgURL,
+          isTrending: product.isTrending,
+          productName: product.productName,
+          productPrice: product.productPrice,
+          rating: product.rating,
+        },
+      };
+      const result = await productCollection.updateOne(
+        query,
+        updateProduct,
+        option
+      );
       res.send(result);
     });
   } finally {

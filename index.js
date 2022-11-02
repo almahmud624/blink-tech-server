@@ -97,7 +97,6 @@ async function run() {
         query = {
           mail: req.query.email,
         };
-        console.log(query);
       }
       const cursor = ordersCollection.find(query);
       const orders = await cursor.toArray();
@@ -105,6 +104,25 @@ async function run() {
     });
 
     // order remove
+    app.delete("/orders/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) };
+      const result = await ordersCollection.deleteOne(query);
+      res.send(result);
+    });
+    // patch order
+    app.patch("/orders/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) };
+      const status = req.body.status;
+      const updateStatus = {
+        $set: {
+          status: status,
+        },
+      };
+      const result = await ordersCollection.updateOne(query, updateStatus);
+      res.send(result);
+    });
   } finally {
     // client.close()
   }

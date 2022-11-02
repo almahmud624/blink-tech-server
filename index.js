@@ -3,6 +3,9 @@ const cors = require("cors");
 const { MongoClient, ServerApiVersion } = require("mongodb");
 const ObjectId = require("mongodb").ObjectId;
 
+// .env
+require("dotenv").config();
+
 const port = process.env.PORT || 4000;
 
 const app = express();
@@ -13,8 +16,8 @@ app.get("/", (req, res) => {
   res.send("Blink Tech Connected");
 });
 
-const uri =
-  "mongodb+srv://blink-tech:iyMA9UIh0RtHtpOj@cluster0.4ieih.mongodb.net/?retryWrites=true&w=majority";
+const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.4ieih.mongodb.net/?retryWrites=true&w=majority`;
+
 const client = new MongoClient(uri, {
   useNewUrlParser: true,
   useUnifiedTopology: true,

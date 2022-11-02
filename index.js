@@ -70,6 +70,7 @@ async function run() {
           productName: product.productName,
           productPrice: product.productPrice,
           rating: product.rating,
+          isPromoted: product.isPromoted,
         },
       };
       const result = await productCollection.updateOne(

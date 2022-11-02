@@ -27,6 +27,7 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     const productCollection = client.db("blink-tech").collection("products");
+    const ordersCollection = client.db("blink-tech").collection("orders");
     // send data on server
     app.post("/products", async (req, res) => {
       const product = req.body;
@@ -47,14 +48,14 @@ async function run() {
       const product = await productCollection.findOne(query);
       res.send(product);
     });
-    // delete data
+    // delete product
     app.delete("/products/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: ObjectId(id) };
       const result = await productCollection.deleteOne(query);
       res.send(result);
     });
-    // update data
+    // update product
     app.put("/products/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: ObjectId(id) };
@@ -78,6 +79,14 @@ async function run() {
         updateProduct,
         option
       );
+      res.send(result);
+    });
+
+    // orders api
+    // post orders
+    app.post("/orders", async (req, res) => {
+      const order = req.body;
+      const result = await ordersCollection.insertOne(order);
       res.send(result);
     });
   } finally {

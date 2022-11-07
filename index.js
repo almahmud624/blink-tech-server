@@ -151,14 +151,14 @@ async function run() {
     });
 
     // order remove
-    app.delete("/orders/:id", async (req, res) => {
-      const id = req.params.id;
-      const query = { _id: ObjectId(id) };
+    // app.delete("/orders/:id", async (req, res) => {
+    //   const id = req.params.id;
+    //   const query = { _id: ObjectId(id) };
 
-      console.log(req.body);
-      const result = await ordersCollection.deleteOne(query);
-      res.send(result);
-    });
+    //   console.log(req.body);
+    //   const result = await ordersCollection.deleteOne(query);
+    //   res.send(result);
+    // });
 
     // order remove by put method
     app.put("/orders/:id", async (req, res) => {
@@ -181,13 +181,12 @@ async function run() {
     // patch order
     app.patch("/orders/:id", verifyJWT, async (req, res) => {
       const id = req.params.id;
-      const query = { _id: ObjectId(id) };
-      const status = req.body.status;
-      console.log(req.body);
+      const { status, productId } = req.body;
+      const query = { _id: ObjectId(id), "orderInfo._id": productId };
 
       const updateStatus = {
         $set: {
-          status: status,
+          "orderInfo.$.status": status,
         },
       };
       const result = await ordersCollection.updateOne(query, updateStatus);

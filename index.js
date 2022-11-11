@@ -51,9 +51,20 @@ async function run() {
       const result = await productCollection.insertOne(product);
       res.send(product);
     });
+
     // get data from server
     app.get("/products", async (req, res) => {
-      const query = {};
+      let query = {};
+
+      // search on collection
+      const searchText = req.query.search;
+      if (searchText.length) {
+        query = {
+          $text: {
+            $search: searchText,
+          },
+        };
+      }
 
       // sort product price in ascending & descending by query on client site by checkbox
       const order = req.query.order === "asc" ? 1 : -1;
@@ -72,6 +83,7 @@ async function run() {
       const products = await cursor.sort({ productPrice: order }).toArray();
       res.send(products);
     });
+
     //get single data
     app.get("/products/:id", async (req, res) => {
       const id = req.params.id;
@@ -79,6 +91,7 @@ async function run() {
       const product = await productCollection.findOne(query);
       res.send(product);
     });
+
     // delete product
     app.delete("/products/:id", async (req, res) => {
       const id = req.params.id;
@@ -86,6 +99,7 @@ async function run() {
       const result = await productCollection.deleteOne(query);
       res.send(result);
     });
+
     // update product
     app.put("/products/:id", async (req, res) => {
       const id = req.params.id;

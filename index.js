@@ -54,8 +54,22 @@ async function run() {
     // get data from server
     app.get("/products", async (req, res) => {
       const query = {};
+
+      // sort product price in ascending & descending by query on client site by checkbox
+      const order = req.query.order === "asc" ? 1 : -1;
+
+      // convert price string to Int
+      productCollection
+        .find({}, { productPrice: 1 })
+        .forEach(function (product) {
+          productCollection.updateMany(
+            { _id: product._id },
+            { $set: { productPrice: parseFloat(product.productPrice) } }
+          );
+        });
+
       const cursor = productCollection.find(query);
-      const products = await cursor.toArray();
+      const products = await cursor.sort({ productPrice: order }).toArray();
       res.send(products);
     });
     //get single data

@@ -265,6 +265,20 @@ async function run() {
 
     // post booking data on server
     app.post("/bookings", async (req, res) => {
+      const bookedQuery = {
+        selectedDate: req.body.selectedDate,
+        service: req.body.service,
+        email: req.body.email,
+      };
+      const booked = await bookingCollection.find(bookedQuery).toArray();
+
+      if (booked.length) {
+        res.send({
+          acknowledged: false,
+          message: `You already have a booking on ${req.body.selectedDate}`,
+        });
+        return;
+      }
       const result = await bookingCollection.insertOne(req.body);
       res.send(result);
     });

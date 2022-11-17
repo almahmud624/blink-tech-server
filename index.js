@@ -28,16 +28,24 @@ async function run() {
   try {
     // products collection
     const productCollection = client.db("blink-tech").collection("products");
+
     // orders collection
     const ordersCollection = client.db("blink-tech").collection("orders");
+
     // appointment options
     const appointmentOptions = client
       .db("blink-tech")
       .collection("appointmentOptions");
+
     // booking collection
     const bookingCollection = client
       .db("blink-tech")
       .collection("bookingCollection");
+
+    // user collection
+    const usersCollection = client
+      .db("blink-tech")
+      .collection("usersCollection");
 
     // jwt verify function
     const verifyJWT = (req, res, next) => {
@@ -285,7 +293,15 @@ async function run() {
 
     // load bookings data from server
     app.get("/bookings", async (req, res) => {
-      const result = await bookingCollection.find({}).toArray();
+      const booking = await bookingCollection
+        .find({ email: req.query.email })
+        .toArray();
+      res.send(booking);
+    });
+
+    // store user data on server
+    app.post("/users", async (req, res) => {
+      const result = await usersCollection.insertOne(req.body);
       res.send(result);
     });
   } finally {

@@ -26,8 +26,14 @@ const client = new MongoClient(uri, {
 
 async function run() {
   try {
+    // products collection
     const productCollection = client.db("blink-tech").collection("products");
+    // orders collection
     const ordersCollection = client.db("blink-tech").collection("orders");
+    // appointment options
+    const appointmentOptions = client
+      .db("blink-tech")
+      .collection("appointmentOptions");
 
     // jwt verify function
     const verifyJWT = (req, res, next) => {
@@ -58,7 +64,7 @@ async function run() {
 
       // search on collection
       const searchText = req.query.search;
-      if (searchText.length) {
+      if (searchText?.length) {
         query = {
           $text: {
             $search: searchText,
@@ -218,6 +224,12 @@ async function run() {
         },
       };
       const result = await ordersCollection.updateOne(query, updateStatus);
+      res.send(result);
+    });
+
+    // get appointment Options
+    app.get("/appointment-options", async (req, res) => {
+      const result = await appointmentOptions.find({}).toArray();
       res.send(result);
     });
   } finally {

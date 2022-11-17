@@ -34,6 +34,10 @@ async function run() {
     const appointmentOptions = client
       .db("blink-tech")
       .collection("appointmentOptions");
+    // booking collection
+    const bookingCollection = client
+      .db("blink-tech")
+      .collection("bookingCollection");
 
     // jwt verify function
     const verifyJWT = (req, res, next) => {
@@ -227,9 +231,47 @@ async function run() {
       res.send(result);
     });
 
-    // get appointment Options
+    // use aggregate to query multiple collection and the merge data
     app.get("/appointment-options", async (req, res) => {
-      const result = await appointmentOptions.find({}).toArray();
+      const date = req.query.date;
+      const options = await appointmentOptions.find({}).toArray();
+
+      // get booking data via selected date
+      const bookingQuery = { selectedDate: date };
+      const booked = await bookingCollection.find(bookingQuery).toArray();
+
+      options.forEach((option) => {
+        const bookedOption = booked.filter(
+          (book) => book.service === option.name
+        );
+        const bookedSlots = bookedOption.map((bookOption) => bookOption.slot);
+        const restSlot = option?.slots.filter(
+          (slot) => !bookedSlots.includes(slot)
+        );
+        option.slots = restSlot;
+      });
+
+      res.send(options);
+    });
+
+    /**
+     * API naming convention
+     * app.post('/bookings')
+     * app.get('/bookings')
+     * app.get('/bookings/:id')
+     * app.patch('/bookings/:id')
+     * app.delete('/bookings/:id')
+     */
+
+    // post booking data on server
+    app.post("/bookings", async (req, res) => {
+      const result = await bookingCollection.insertOne(req.body);
+      res.send(result);
+    });
+
+    // load bookings data from server
+    app.get("/bookings", async (req, res) => {
+      const result = await bookingCollection.find({}).toArray();
       res.send(result);
     });
   } finally {

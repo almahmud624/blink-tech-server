@@ -310,6 +310,26 @@ async function run() {
       const result = await usersCollection.insertOne(req.body);
       res.send(result);
     });
+
+    // get all users
+    app.get("/users", async (req, res) => {
+      const users = await usersCollection.find({}).toArray();
+      res.send(users);
+    });
+
+    // set admin role on users
+    app.patch("/users/admin/:id", async (req, res) => {
+      const updateDoc = {
+        $set: {
+          role: "admin",
+        },
+      };
+      const result = await usersCollection.updateOne(
+        { _id: ObjectId(req.params?.id) },
+        updateDoc
+      );
+      res.send(result);
+    });
   } finally {
     // client.close()
   }

@@ -47,6 +47,17 @@ async function run() {
       .db("blink-tech")
       .collection("usersCollection");
 
+    // JWT
+    app.post("/jwt", (req, res) => {
+      const user = req.body;
+      console.log(user);
+
+      const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
+        expiresIn: "1h",
+      });
+      res.send({ token });
+    });
+
     // jwt verify function
     const verifyJWT = (req, res, next) => {
       const jwtHeaders = req.headers.authorization;
@@ -59,6 +70,7 @@ async function run() {
           return res.status(403).send("Forbidden Access");
         }
         req.decoded = decoded;
+
         next();
       });
     };
@@ -143,17 +155,6 @@ async function run() {
         option
       );
       res.send(result);
-    });
-
-    // JWT
-    app.post("/jwt", (req, res) => {
-      const user = req.body;
-      console.log(user);
-
-      const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
-        expiresIn: "1h",
-      });
-      res.send({ token });
     });
 
     // orders api
@@ -292,7 +293,12 @@ async function run() {
     });
 
     // load bookings data from server
-    app.get("/bookings", async (req, res) => {
+    app.get("/bookings", verifyJWT, async (req, res) => {
+      // valid email check
+      if (req.decoded?.email !== req.query?.email) {
+        res.status(403).send("Access Forbiden");
+      }
+
       const booking = await bookingCollection
         .find({ email: req.query.email })
         .toArray();

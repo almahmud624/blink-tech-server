@@ -61,6 +61,8 @@ async function run() {
     // jwt verify function
     const verifyJWT = (req, res, next) => {
       const jwtHeaders = req.headers.authorization;
+      console.log(jwtHeaders);
+
       if (!jwtHeaders) {
         return res.status(401).send({ message: "Unauthorized Access" });
       }
@@ -317,8 +319,22 @@ async function run() {
       res.send(users);
     });
 
+    // check admin or not
+    app.get("/users/admin/:email", async (req, res) => {
+      const user = await usersCollection.findOne({ email: req?.params.email });
+      res.send({ isAdmin: user?.role === "admin" });
+    });
+
     // set admin role on users
-    app.patch("/users/admin/:id", async (req, res) => {
+    app.patch("/users/admin/:id", verifyJWT, async (req, res) => {
+      // check this user admin or not by user email
+      console.log("admin", req.params.id);
+
+      const user = await usersCollection.findOne({ email: req.decoded.email });
+      if (user?.role !== "admin") {
+        res.status(403).send({ message: "Access Forbiden" });
+      }
+
       const updateDoc = {
         $set: {
           role: "admin",

@@ -50,10 +50,9 @@ async function run() {
     // JWT
     app.post("/jwt", (req, res) => {
       const user = req.body;
-      console.log(user);
 
       const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
-        expiresIn: "1h",
+        expiresIn: "1d",
       });
       res.send({ token });
     });
@@ -61,7 +60,6 @@ async function run() {
     // jwt verify function
     const verifyJWT = (req, res, next) => {
       const jwtHeaders = req.headers.authorization;
-      console.log(jwtHeaders);
 
       if (!jwtHeaders) {
         return res.status(401).send({ message: "Unauthorized Access" });
@@ -77,11 +75,21 @@ async function run() {
       });
     };
 
+    // valid admin check
+    const adminCheck = async (req, res, next) => {
+      const user = await usersCollection.findOne({ email: req.decoded.email });
+      if (user?.role !== "admin") {
+        res.status(403).send({ message: "Access Forbiden" });
+        return;
+      }
+      next();
+    };
+
     // send data on server
     app.post("/products", async (req, res) => {
       const product = req.body;
       const result = await productCollection.insertOne(product);
-      res.send(product);
+      res.send(result);
     });
 
     // get data from server
@@ -314,7 +322,7 @@ async function run() {
     });
 
     // get all users
-    app.get("/users", async (req, res) => {
+    app.get("/users", verifyJWT, adminCheck, async (req, res) => {
       const users = await usersCollection.find({}).toArray();
       res.send(users);
     });
@@ -326,14 +334,12 @@ async function run() {
     });
 
     // set admin role on users
-    app.patch("/users/admin/:id", verifyJWT, async (req, res) => {
+    app.patch("/users/admin/:id", verifyJWT, adminCheck, async (req, res) => {
       // check this user admin or not by user email
-      console.log("admin", req.params.id);
-
-      const user = await usersCollection.findOne({ email: req.decoded.email });
-      if (user?.role !== "admin") {
-        res.status(403).send({ message: "Access Forbiden" });
-      }
+      // const user = await usersCollection.findOne({ email: req.decoded.email });
+      // if (user?.role !== "admin") {
+      //   res.status(403).send({ message: "Access Forbiden" });
+      // }
 
       const updateDoc = {
         $set: {
@@ -344,6 +350,14 @@ async function run() {
         { _id: ObjectId(req.params?.id) },
         updateDoc
       );
+      res.send(result);
+    });
+
+    // remove user
+    app.delete("/users/admin/:id", verifyJWT, adminCheck, async (req, res) => {
+      const result = await usersCollection.deleteOne({
+        _id: ObjectId(req.params.id),
+      });
       res.send(result);
     });
   } finally {

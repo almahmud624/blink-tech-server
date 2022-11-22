@@ -16,6 +16,9 @@ app.get("/", (req, res) => {
   res.send("Blink Tech Connected");
 });
 
+// stripe key
+const stripe = require("stripe")(process.env.STRIPE_SK);
+
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.4ieih.mongodb.net/?retryWrites=true&w=majority`;
 
 const client = new MongoClient(uri, {
@@ -317,6 +320,14 @@ async function run() {
 
     // store user data on server
     app.post("/users", async (req, res) => {
+      const duplicateUser = await usersCollection
+        .find({ email: req.body.email })
+        .toArray();
+
+      if (duplicateUser.length) {
+        return;
+      }
+
       const result = await usersCollection.insertOne(req.body);
       res.send(result);
     });
@@ -359,6 +370,22 @@ async function run() {
         _id: ObjectId(req.params.id),
       });
       res.send(result);
+    });
+
+    // stripe payment
+    app.post("/create-payment-intent", async (req, res) => {
+      const price = req.body.price;
+      const amount = price * 100; // convert price into decimal / paisa পয়সা
+      console.log(amount);
+
+      const paymentIntents = await stripe.paymentIntents.create({
+        currency: "usd",
+        amount,
+        payment_method_types: ["card"],
+      });
+      res.send({
+        clientSecret: paymentIntents.client_secret,
+      });
     });
   } finally {
     // client.close()

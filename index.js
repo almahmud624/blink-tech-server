@@ -210,13 +210,9 @@ async function run() {
       res.send({ count, orders });
     });
 
-    // order remove
-    // app.delete("/orders/:id", async (req, res) => {
-    //   const id = req.params.id;
-    //   const query = { _id: ObjectId(id) };
-
-    //   console.log(req.body);
-    //   const result = await ordersCollection.deleteOne(query);
+    //**!! */ remove all orders -> temporary api
+    // app.delete("/orders", async (req, res) => {
+    //   const result = await ordersCollection.deleteMany({});
     //   res.send(result);
     // });
 
@@ -376,7 +372,6 @@ async function run() {
     app.post("/create-payment-intent", async (req, res) => {
       const price = req.body.price;
       const amount = price * 100; // convert price into decimal / paisa পয়সা
-      console.log(amount);
 
       const paymentIntents = await stripe.paymentIntents.create({
         currency: "usd",
